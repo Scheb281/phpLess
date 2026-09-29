@@ -3,15 +3,17 @@ session_start();
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use OpenAI;
+use GuzzleHttp\Client as GuzzleClient;
 use Ramsey\Uuid\Uuid;
 
-include 'paint.php'
+include_once 'paint.php';
 
 //1. Вход и регистрация
 
 $neon_string = 'postgresql://neondb_owner:npg_i3rdHYxUJCe1@ep-hidden-grass-b5lwbny2-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
 $dsn = 'pgsql:host=ep-hidden-grass-b5lwbny2-pooler.c-7.us-east-2.aws.neon.tech;port=5432;dbname=neondb;sslmode=require';
+
+$gc = new GigaChat();
 
 try{
     $pdo = new PDO($dsn, "neondb_owner", "npg_i3rdHYxUJCe1", [
@@ -181,47 +183,103 @@ function inter() {
 
 //2. ИИ
 
-function AI_Request() {
-    $auth_key="MDE5Yzc2YmYtNGI0Yi03YWU1LTk5Y2QtZDAwMzVkZDkyZjIyOmI4ZWQwZmNmLTJlNDgtNGFiZS05ZWFlLTYyYzg1ZGU4NTdiYg==";
-    $scope   = 'GIGACHAT_API_PERS';
+if (isset($_POST['action']) && $_POST['action'] === 'gigachat_query') {
+    ini_set('display_errors', 1);
+    error_reporting(E_ALL);
 
-    $ch = curl_init();
+    try {
+        $prompt = $_POST['prompt'] ?? '';
+        
+        $gc = new GigaChat(); 
+        $response = $gc->AI_Request($prompt);
+
+        echo $response;
+    } catch (\Throwable $e) {
+        echo "Поймали ошибку: " . $e->getMessage() . " в файле " . $e->getFile() . " на строке " . $e->getLine();
+    }
+    exit;
 }
 
-function GetToken() {
-    $id = Uuid::uuid4()->toString();
+class GigaChat {
+    private string $auth_key = "MDE5Yzc2YmYtNGI0Yi03YWU1LTk5Y2QtZDAwMzVkZDkyZjIyOmI4ZWQwZmNmLTJlNDgtNGFiZS05ZWFlLTYyYzg1ZGU4NTdiYg==";
+    private string $scope   = 'GIGACHAT_API_PERS';
 
-    $ch = curl_init();
-    curl_setopt_array($ch, [
-        CURLOPT_URL => 'https://sberbank.ru',
-        CURLOPT_POST => true,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_HTTPHEADER => [
-            'Content-Type: application/x-www-form-urlencoded',
-            'Accept: application/json',
-            'RqUID: ' . $id,
-            'Authorization: Basic ' . $this->authKey
-        ],
-        CURLOPT_POSTFIELDS => 'scope=' . $this->scope
-    ]);
+    public function AI_Request($text) {
+        try {
 
-    $response = curl_exec($ch);
-    $data = json_decode($response, true);
-    curl_close($ch);
+            $client = $this->getClient();
 
-    if (!isset($data['access_token'])) {
-        throw new Exception("Ошибка OAuth GigaChat: " . $response);
+            $response = $client->chat()->create([
+                'model' => 'GigaChat',
+                'messages' => [
+                    ['role' => 'system', 'content' => 'Ты умный помощник. Человек задает тебе вопрос по рисованию, в ответ ты даешь идеии, что можно нарисовать или рассказываешь, как нарисовать объект из запроса. Если человек задаст вопрос о сайте, то в ответе опиши сайт, что тут есть регистрациия и вход, ии помощник, холст для рисования и история рисунков. Если человек задаст вопрос, который не относится ни к рисованию, ни к сайту, то в ответе скажи, что лучше задайте вопрос о сайте или рисовании.'],
+                    ['role' => 'user', 'content' => $text]
+                ],
+                'temperature' => 0.7,
+            ]);
+
+            $arr = $response->toArray();
+
+            if (isset($arr['choices'][0]['message']['content'])) {
+                return $arr['choices'][0]['message']['content'];
+            }
+        } 
+        catch (\Exception $e) {
+            return "Ошибка выполнения запроса: " . $e->getMessage();
+        }
     }
 
-    return $data['access_token'];
-}
+    private function GetToken() {
+        $id = Uuid::uuid4()->toString();
 
-function getClient(): \OpenAI\Client
-{
-    $token = $this->GetToken();
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => 'https://ngw.devices.sberbank.ru:9443/api/v2/oauth',
+            CURLOPT_POST => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_SSL_VERIFYPEER => false, 
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/x-www-form-urlencoded',
+                'Accept: application/json',
+                'RqUID: ' . $id,
+                'Authorization: Basic ' . $this->auth_key
+            ],
+            CURLOPT_POSTFIELDS => 'scope=' . $this->scope
+        ]);
 
-    return OpenAI::factory()->withApiKey($token)->withBaseUri('https://giga.chat')->make();
+        $response = curl_exec($ch);
+        $data = json_decode($response, true);
+        curl_close($ch);
+
+        if (!isset($data['access_token'])) {
+            throw new Exception("Ошибка OAuth GigaChat: " . $response);
+        }
+
+        return $data['access_token'];
+    }
+
+    private function getClient(): \OpenAI\Client
+    {
+        $token = $this->GetToken();
+
+        $guzzleClient = new GuzzleClient([
+            'verify' => false,
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'X-Request-ID'  => Uuid::uuid4()->toString(),
+                'Content-Type'  => 'application/json',
+                'Accept'        => 'application/json'
+            ]
+        ]);
+
+        return OpenAI::factory()
+            ->withApiKey($token)
+            ->withBaseUri('https://api.giga.chat/v1/') 
+            ->withHttpClient($guzzleClient)
+            ->make();
+    }
+    
 }
 
 ?>
