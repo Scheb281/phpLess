@@ -206,23 +206,41 @@ class GigaChat {
 
     public function AI_Request($text) {
         try {
-
-            $client = $this->getClient();
-
-            $response = $client->chat()->create([
+            $postData = [
                 'model' => 'GigaChat',
                 'messages' => [
                     ['role' => 'system', 'content' => 'Ты умный помощник. Человек задает тебе вопрос по рисованию, в ответ ты даешь идеии, что можно нарисовать или рассказываешь, как нарисовать объект из запроса. Если человек задаст вопрос о сайте, то в ответе опиши сайт, что тут есть регистрациия и вход, ии помощник, холст для рисования и история рисунков. Если человек задаст вопрос, который не относится ни к рисованию, ни к сайту, то в ответе скажи, что лучше задайте вопрос о сайте или рисовании.'],
                     ['role' => 'user', 'content' => $text]
                 ],
                 'temperature' => 0.7,
+            ];
+
+            $token = $this->GetToken();
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL => 'https://gigachat.devices.sberbank.ru/api/v1/chat/completions',
+                CURLOPT_POST => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_SSL_VERIFYPEER => false, 
+                CURLOPT_SSL_VERIFYHOST => false,
+                CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                CURLOPT_HTTPHEADER => [
+                    'Content-Type: application/json',
+                    'Accept: application/json',
+                    'Authorization: Bearer ' . $token
+                ],
+                CURLOPT_POSTFIELDS => json_encode($postData, JSON_UNESCAPED_UNICODE)
             ]);
 
-            $arr = $response->toArray();
+            $response = curl_exec($ch);
+            curl_close($ch);
 
+            $arr = json_decode($response, true);
             if (isset($arr['choices'][0]['message']['content'])) {
                 return $arr['choices'][0]['message']['content'];
             }
+            
+            return "Не удалось прочитать ответ ИИ: " . $response;
         } 
         catch (\Exception $e) {
             return "Ошибка выполнения запроса: " . $e->getMessage();
@@ -239,6 +257,7 @@ class GigaChat {
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => false, 
             CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             CURLOPT_HTTPHEADER => [
                 'Content-Type: application/x-www-form-urlencoded',
                 'Accept: application/json',
@@ -257,29 +276,7 @@ class GigaChat {
         }
 
         return $data['access_token'];
-    }
-
-    private function getClient(): \OpenAI\Client
-    {
-        $token = $this->GetToken();
-
-        $guzzleClient = new GuzzleClient([
-            'verify' => false,
-            'headers' => [
-                'Authorization' => 'Bearer ' . $token,
-                'X-Request-ID'  => Uuid::uuid4()->toString(),
-                'Content-Type'  => 'application/json',
-                'Accept'        => 'application/json'
-            ]
-        ]);
-
-        return OpenAI::factory()
-            ->withApiKey($token)
-            ->withBaseUri('https://api.giga.chat/v1/') 
-            ->withHttpClient($guzzleClient)
-            ->make();
-    }
-    
+    } 
 }
 
 ?>
