@@ -39,38 +39,90 @@ if(isset($_POST['login_request'])) {
 
         if($user) {
             CreateCookie($_POST['login'], $hash);
-
             ?>
-            <form action='paint.php' method='post'>
-                <h2>С возвращением, <?echo $user['Login']?>!</h2>
-                <input type='submit' name='paint' value='Начать рисовать'>
-            <form>
-
-            <form action='index.php' method='post'>
-                <input type='submit' name='main_menu' value='Сменить аккаунт'>
-            <form>
+            <!DOCTYPE html>
+            <html lang="ru">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>Вход</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+            </head>
+            <body class="bg-light">
+            <div class="container" style="max-width: 520px; margin-top: 60px;">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <h2 class="card-title mb-4">С возвращением, <?= htmlspecialchars($user['Login']) ?>!</h2>
+                        <form action="paint.php" method="post" class="d-grid gap-2 mb-2">
+                            <button type="submit" name="paint" class="btn btn-primary">Начать рисовать</button>
+                        </form>
+                        <form action="index.php" method="post" class="d-grid">
+                            <button type="submit" name="main_menu" class="btn btn-outline-secondary">Сменить аккаунт</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+            </body>
+            </html>
             <?php
 
             $_SESSION['username'] = $_POST['login'];
         }
         else {
             ?>
-            <form action='index.php' method='post'>
-                <h2>Аккаунт не найден</h2>
-                <input type='submit' name='log_in' value='Войти'>
-                <input type='submit' name='main_menu' value='Вернуться в главное меню'>
-            <form>
+            <!DOCTYPE html>
+            <html lang="ru">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>Вход</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+            </head>
+            <body class="bg-light">
+            <div class="container" style="max-width: 520px; margin-top: 60px;">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <h2 class="card-title mb-4 text-danger">Аккаунт не найден</h2>
+                        <form action="index.php" method="post" class="d-grid gap-2">
+                            <button type="submit" name="log_in" class="btn btn-primary">Войти</button>
+                            <button type="submit" name="main_menu" class="btn btn-outline-secondary">Вернуться в главное меню</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+            </body>
+            </html>
             <?php
         }
     }
     else {
         ?>
-        <form action='index.php' method='post'>
-            <h2>Ошибка входа</h2>
-            <h3>Были переданы пустые поля</h3>
-            <input type='submit' name='log_in' value='Войти'>
-            <input type='submit' name='main_menu' value='Вернуться в главное меню'>
-        <form>
+        <!DOCTYPE html>
+        <html lang="ru">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Вход</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body class="bg-light">
+        <div class="container" style="max-width: 520px; margin-top: 60px;">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h2 class="card-title text-danger mb-2">Ошибка входа</h2>
+                    <p class="text-muted">Были переданы пустые поля</p>
+                    <form action="index.php" method="post" class="d-grid gap-2">
+                        <button type="submit" name="log_in" class="btn btn-primary">Войти</button>
+                        <button type="submit" name="main_menu" class="btn btn-outline-secondary">Вернуться в главное меню</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        </body>
+        </html>
         <?php
     }
 }
@@ -88,28 +140,63 @@ else if(isset($_POST['registration_request'])) {
 
         CreateCookie($_POST['login'], $hash);
         ?>
-            <form action='paint.php' method='post'>
-                <h2>Добро пожаловать, <?echo $_POST['login']?>!</h2>
-                <input type='submit' name='paint' value='Начать рисовать'>
-            <form>
-
-            <form action='index.php' method='post'>
-                <input type='submit' name='main_menu' value='Сменить аккаунт'>
-            <form>
+        <!DOCTYPE html>
+        <html lang="ru">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Регистрация</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body class="bg-light">
+        <div class="container" style="max-width: 520px; margin-top: 60px;">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h2 class="card-title mb-4">Добро пожаловать, <?= htmlspecialchars($_POST['login']) ?>!</h2>
+                    <form action="paint.php" method="post" class="d-grid gap-2 mb-2">
+                        <button type="submit" name="paint" class="btn btn-primary">Начать рисовать</button>
+                    </form>
+                    <form action="index.php" method="post" class="d-grid">
+                        <button type="submit" name="main_menu" class="btn btn-outline-secondary">Сменить аккаунт</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        </body>
+        </html>
         <?php
     }
     else {
         ?>
-        <form action='index.php' method='post'>
-            <h2>Ошибка регистрации</h2>
-            <h3>Возможные ошибки</h3>
-            <ul>
-                <li>Были переданы пустые поля</li>
-                <li>Логин занят</li>
-            </ul>
-            <input type='submit' name='sign_up' value='Зарегистрироваться'>
-            <input type='submit' name='main_menu' value='Вернуться в главное меню'>
-        <form>
+        <!DOCTYPE html>
+        <html lang="ru">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Регистрация</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body class="bg-light">
+        <div class="container" style="max-width: 520px; margin-top: 60px;">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title text-danger mb-2">Ошибка регистрации</h2>
+                    <p class="mb-2">Возможные ошибки:</p>
+                    <ul class="mb-3">
+                        <li>Были переданы пустые поля</li>
+                        <li>Логин занят</li>
+                    </ul>
+                    <form action="index.php" method="post" class="d-grid gap-2">
+                        <button type="submit" name="sign_up" class="btn btn-success">Зарегистрироваться</button>
+                        <button type="submit" name="main_menu" class="btn btn-outline-secondary">Вернуться в главное меню</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        </body>
+        </html>
         <?php
     }
 }
@@ -161,14 +248,31 @@ function inter() {
             CreateCookie($data[0], $data[1]);
 
             ?>
-            <form action='paint.php' method='post'>
-                <h2>С возвращением, <?echo $user['Login']?>!</h2>
-                <input type='submit' name='paint' value='Начать рисовать'>
-            <form>
-
-            <form action='index.php' method='post'>
-                <input type='submit' name='main_menu' value='Сменить аккаунт'>
-            <form>
+            <!DOCTYPE html>
+            <html lang="ru">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>С возвращением</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+            </head>
+            <body class="bg-light">
+            <div class="container" style="max-width: 520px; margin-top: 60px;">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <h2 class="card-title mb-4">С возвращением, <?= htmlspecialchars($user['Login']) ?>!</h2>
+                        <form action="paint.php" method="post" class="d-grid gap-2 mb-2">
+                            <button type="submit" name="paint" class="btn btn-primary">Начать рисовать</button>
+                        </form>
+                        <form action="index.php" method="post" class="d-grid">
+                            <button type="submit" name="main_menu" class="btn btn-outline-secondary">Сменить аккаунт</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+            </body>
+            </html>
             <?php
 
             $_SESSION['username'] = $data[0];
